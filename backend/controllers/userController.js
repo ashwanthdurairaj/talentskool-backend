@@ -2,6 +2,66 @@ const mongoose = require('mongoose');
 const asyncHandler = require('express-async-handler');
 const User = require('../models/userModel');
 const jwt = require('jsonwebtoken')
+const {OAuth2Client} = require('google-auth-library')
+
+
+//post method, used to ping the auth url from the frontend
+const googleLoginRequest = asyncHandler(async(req, res) => {
+
+  res.header('Referrer-Policy', 'no-referrer-when-downgrade')
+
+  const redirectUrl = 'http://127.0.0.1:3000/oauth'
+
+  const oAuth2Client = new OAuth2Client(
+    process.env.clientID,
+    process.env.CLIENT_SECRET,
+    redirectUrl,
+  )
+
+  const authorizeUrl = oAuth2Client.generateAuthUrl({
+    access_type: 'offline',
+    scope: 'https://www.googleapis.com/auth/userinfo.profile openid ',
+    prompt: 'consent'
+  });
+
+  res.json({url: authorizeUrl})
+
+})
+
+const getUserData = async(access_token) => {
+  const response = await fetch(`https://googleapis.com/oauth2/v3/userinfo?access_tokens${access_token}`)
+  const data = await response.json()
+  console.log('data', data)
+}
+
+//get method
+const OAuth = asyncHandler(async(req, res) => {
+
+  const code = req.query.code
+  try {
+    const redirectURL = "http://127.0.0.1:3000/oauth"
+    const oAuth2Client = new OAuth2Client(
+        process.env.CLIENT_ID,
+        process.env.CLIENT_SECRET,
+        redirectURL
+      );
+    const r =  await oAuth2Client.getToken(code);
+    // Make sure to set the credentials on the OAuth2 client.
+    await oAuth2Client.setCredentials(r.tokens);
+    console.info('Tokens acquired.');
+    const user = oAuth2Client.credentials;
+    console.log('credentials',user);
+    await getUserData(oAuth2Client.credentials.access_token);
+
+  } catch (err) {
+    console.log('Error logging in with OAuth2 user', err);
+  }
+
+
+  res.redirect(303, 'http://localhost:5173/');
+
+})
+
 const register = asyncHandler(async(req, res) => {
     const {username, email, password} = req.body
     console.log(req.body)
@@ -84,5 +144,7 @@ const generateToken = (id) => {
 module.exports = {
   register,
   login,
-  getMe
+  getMe,
+  googleLoginRequest,
+  OAuth
 }

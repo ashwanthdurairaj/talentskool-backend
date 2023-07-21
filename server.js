@@ -16,7 +16,7 @@ app.use(function(req, res, next) {
 });
 // app.get('/', (req, res) => {
 //     res.send('Server running')
-// })
+// })s
 app.use('/', require('./backend/routes/userRoutes'))
 // app.use('/login', require('./backend/routes/userRoutes'))
 // app.use('/get', require('./backend/routes/userRoutes'))
