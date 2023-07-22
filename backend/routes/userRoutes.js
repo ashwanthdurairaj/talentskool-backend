@@ -6,6 +6,7 @@ const {
   googleLoginRequest,
   OAuth,
   getMe,
+  test
 } = require('../controllers/userController')
 const { protect } = require('../middlewares/authMiddleware')
 
@@ -14,5 +15,6 @@ router.post('/login', login)
 router.post('/request', googleLoginRequest)
 router.get('/oauth', OAuth)
 router.get('/get', protect, getMe)
+router.get('/', test)
 
 module.exports = router

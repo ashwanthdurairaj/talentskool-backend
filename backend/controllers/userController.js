@@ -3,69 +3,113 @@ const asyncHandler = require('express-async-handler');
 const User = require('../models/userModel');
 const jwt = require('jsonwebtoken')
 const {OAuth2Client} = require('google-auth-library')
-
+const fetch = require("node-fetch");
+const { google } = require('googleapis');
 
 //post method, used to ping the auth url from the frontend
 const googleLoginRequest = asyncHandler(async(req, res) => {
 
+  res.header('Access-Control-Allow-Origin', 'http://localhost:3000')
+  res.header("Access-Control-Allow-Credentials", 'true');
   res.header('Referrer-Policy', 'no-referrer-when-downgrade')
 
-  const redirectUrl = 'http://127.0.0.1:3000/oauth'
-
+  const redirectUrl = 'http://localhost:5000/oauth'
+  console.log('Function accessed')
   const oAuth2Client = new OAuth2Client(
-    process.env.clientID,
-    process.env.CLIENT_SECRET,
-    redirectUrl,
+    '261023161038-0fc7i4avnlqpc5vjtjh08eak9a0ck5qu.apps.googleusercontent.com',
+    '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',
+redirectUrl,
   )
 
+  // const authorizeUrl = oAuth2Client.generateAuthUrl({
+  //   access_type: 'offline',
+  //   scope: 'https://www.googleapis.com/auth/userinfo.profile openid ',
+  //   prompt: 'consent'
+  // });
   const authorizeUrl = oAuth2Client.generateAuthUrl({
-    access_type: 'offline',
-    scope: 'https://www.googleapis.com/auth/userinfo.profile openid ',
+    access_type: 'offline', // or 'online' for single-use tokens
+    scope: ['https://www.googleapis.com/auth/userinfo.email'],
     prompt: 'consent'
   });
+
+  console.log(authorizeUrl)
 
   res.json({url: authorizeUrl})
 
 })
 
-const getUserData = async(access_token) => {
-  const response = await fetch(`https://googleapis.com/oauth2/v3/userinfo?access_tokens${access_token}`)
-  const data = await response.json()
-  console.log('data', data)
+async function getUserData(access_token) {
+
+  const response = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${access_token}`);
+  
+  //console.log('response',response);
+  const data = await response.json();
+  console.log('data',data);
 }
+
 
 //get method
 const OAuth = asyncHandler(async(req, res) => {
 
-  const code = req.query.code
+  // const code = req.query.code
+  // try {
+  //   const redirectURL = "http://localhost:5000/oauth"
+  //   const oAuth2Client = new OAuth2Client(
+  //       '261023161038-0fc7i4avnlqpc5vjtjh08eak9a0ck5qu.apps.googleusercontent.com',
+  //       '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',
+  //       redirectURL
+  //     );
+  //   const r =  await oAuth2Client.getToken(code);
+  //   // Make sure to set the credentials on the OAuth2 client.
+  //   await oAuth2Client.setCredentials(r.tokens);
+  //   console.info('Tokens acquired.');
+  //   const user = oAuth2Client.credentials;
+  //   console.log('credentials',user);
+  //   await getUserData(oAuth2Client.credentials.access_token);
+  //   const ticket = await oAuth2Client.verifyIdToken({idToken: oAuth2Client.credentials.id_token,audience:'261023161038-0fc7i4avnlqpc5vjtjh08eak9a0ck5qu.apps.googleusercontent.com',});
+  //   console.log(ticket)
+  // } catch (err) {
+  //   console.log('Error logging in with OAuth2 user', err);
+  // }
+
+
+  // res.redirect(303, 'http://localhost:3000/');
+
+  const { code } = req.query;
+
   try {
-    const redirectURL = "http://127.0.0.1:3000/oauth"
+    // Exchange the authorization code for an access token
+    const redirectURL = "http://localhost:5000/oauth"
     const oAuth2Client = new OAuth2Client(
-        process.env.CLIENT_ID,
-        process.env.CLIENT_SECRET,
-        redirectURL
-      );
-    const r =  await oAuth2Client.getToken(code);
-    // Make sure to set the credentials on the OAuth2 client.
-    await oAuth2Client.setCredentials(r.tokens);
-    console.info('Tokens acquired.');
-    const user = oAuth2Client.credentials;
-    console.log('credentials',user);
-    await getUserData(oAuth2Client.credentials.access_token);
+            '261023161038-0fc7i4avnlqpc5vjtjh08eak9a0ck5qu.apps.googleusercontent.com',
+            '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',
+            redirectURL
+          );
+    const tokenResponse = await oAuth2Client.getToken(code);
+    oAuth2Client.setCredentials(tokenResponse.tokens);
 
-  } catch (err) {
-    console.log('Error logging in with OAuth2 user', err);
+    // Fetch the user's email address
+    const oauth2 = google.oauth2({ auth: oAuth2Client, version: 'v2' });
+    const userInfo = await oauth2.userinfo.get();
+    console.log(userInfo.data)
+    // The user's email address is available in userInfo.data.email
+    const userEmail = userInfo.data.email;
+    console.log(userEmail)
+    res.send(`Logged in with email: ${userEmail}`);
+    //userInfo.data.email
+    //userInfo.data.name
+    //storing the above information in mongodb is still remaining
+  } catch (error) {
+    console.error('Error retrieving user information:', error.message);
+    res.status(500).send('Error retrieving user information');
   }
-
-
-  res.redirect(303, 'http://localhost:5173/');
 
 })
 
 const register = asyncHandler(async(req, res) => {
-    const {username, email, password} = req.body
+    const {username, email, number} = req.body
     console.log(req.body)
-    if(!username || !password || !email)
+    if(!username || !number || !email)
     {
         res.status(400)
         throw new Error('Please add all fields')
@@ -82,7 +126,7 @@ const register = asyncHandler(async(req, res) => {
     const user = await User.create({
         username: username,
         email: email,
-        password: password
+        number: number
     })
 
     if (user) {
@@ -141,10 +185,16 @@ const generateToken = (id) => {
   })
 }
 
+const test = asyncHandler(async(req, res) => {
+  console.log('Test function initiated')
+  res.json({message: 'Test function initiated'})
+})
+
 module.exports = {
   register,
   login,
   getMe,
   googleLoginRequest,
-  OAuth
+  OAuth,
+  test
 }
