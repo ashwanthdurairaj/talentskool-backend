@@ -11,7 +11,7 @@ const googleLoginRequest = asyncHandler(async(req, res) => {
   res.header("Access-Control-Allow-Credentials", 'true');
   res.header('Referrer-Policy', 'no-referrer-when-downgrade')
 
-  const redirectUrl = 'http://localhost:5000/oauth'
+  const redirectUrl = 'https://talentskool-backend.vercel.app/oauth'
   console.log('Function accessed')
   const oAuth2Client = new OAuth2Client(
     '261023161038-0fc7i4avnlqpc5vjtjh08eak9a0ck5qu.apps.googleusercontent.com',
@@ -47,7 +47,7 @@ const OAuth = asyncHandler(async(req, res) => {
   const { code } = req.query;
 
   // Exchange the authorization code for an access token
-    const redirectURL = "http://localhost:5000/oauth"
+    const redirectURL = "https://talentskool-backend.vercel.app/oauth"
     const oAuth2Client = new OAuth2Client(
             '261023161038-0fc7i4avnlqpc5vjtjh08eak9a0ck5qu.apps.googleusercontent.com',
             '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',
