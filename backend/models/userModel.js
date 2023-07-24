@@ -4,7 +4,7 @@ const userSchema = mongoose.Schema(
     {
         username: {
             type: String,
-            required: [true, 'Please add username']
+            // required: [true, 'Please add username']
         },
 
         email: {
@@ -14,7 +14,7 @@ const userSchema = mongoose.Schema(
 
         number: {
             type: String,
-            required: [true, 'Please add password']
+            // required: [true, 'Please add password']
         }
     },
     {

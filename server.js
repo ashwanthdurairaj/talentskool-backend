@@ -15,10 +15,5 @@ app.use(function(req, res, next) {
     res.header('Referrer-Policy', 'no-referrer-when-downgrade')
     next();
 });
-// app.get('/', (req, res) => {
-//     res.send('Server running')
-// })s
 app.use('/', require('./backend/routes/userRoutes'))
-// app.use('/login', require('./backend/routes/userRoutes'))
-// app.use('/get', require('./backend/routes/userRoutes'))
 app.listen(5000, () => console.log(`Server started on port 5000`));

@@ -1,0 +1,10 @@
+{
+    "version": 2,
+    "name": "talentskool",
+    "builds": [
+       { "src": "server.js", "use": "@vercel/node" }
+    ],
+    "routes": [
+       { "src": "/(.*)", "dest": "/server.js" }
+    ]
+ }
