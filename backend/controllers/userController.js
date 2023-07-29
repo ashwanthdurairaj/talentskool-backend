@@ -18,7 +18,7 @@ const googleLoginRequest = asyncHandler(async(req, res) => {
     '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',
 redirectUrl,
   )
-
+//
   const authorizeUrl = oAuth2Client.generateAuthUrl({
     access_type: 'offline', // or 'online' for single-use tokens
     scope: ['https://www.googleapis.com/auth/userinfo.email'],
